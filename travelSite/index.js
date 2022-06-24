@@ -1,71 +1,41 @@
-const express = require("express");
-const fs = require("fs");
+const express = require('express');
+const morgan = require('morgan');
+const tourRouter = require('./routes/tourRoutes');
+const usersRoute = require('./routes/userRoutes');
+
 const app = express();
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+//middleware
 app.use(express.json());
-const tours = fs.readFile(`${__dirname}/dev_data/data/tours-simple.json`);
-const getTour = (req, res) => {
-  console.log(req.params);
-  const tour = tours.find((ele) => ele.id === req.params.id * 1);
-  if (req.params.id * 1 > tours.length) {
-    return res.status(404).json({ status: "fail", meassage: "Invalid ID" });
-  }
-  res.status(200).json({ status: "success", data: { tour } });
-};
-const getAllTours = (req, res) => {
-  res
-    .status(200)
-    .json({ status: "success", results: tours.length, data: { tours } });
-};
-const createTour = (req, res) => {
-  const newId = tours[tours.length - 1] + 1;
-  const newTours = Object.assign({ id: newId }, req.body);
-  tours.push(newTours);
-  fs.writeFile(
-    `${__dirname}/dev_data/data/tours-simple.json`,
-    JSON.stringify(tours),
-    (err) => {
-      res
-        .status(201)
-        .json({ status: "success", results: tours.length, data: { newTours } });
-    }
-  );
-};
-const updateTours = (req, res) => {
-  if (req.params.id * 1 > tours.length) {
-    return res.status(404).json({ status: "fail", meassage: "Invalid ID" });
-  }
-  const updatedTour = tours.map((ele) => {
-    if (ele.id === req.params.id * 1) {
-    }
-    return ele;
-  });
-  res.status(200).json({ status: "success", data: { tour: updatedTour } });
-};
-const deleteTours = (req, res) => {
-  if (req.params.id * 1 > tours.length) {
-    return res.status(404).json({ status: "fail", meassage: "Invalid ID" });
-  }
+app.use(express.static(`${__dirname}/public`));
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
 
-  res.status(204).json({ status: "success", data: null });
-};
-app
-  .route("/api/v1/tours/:id")
-  .get(getTour)
-  .patch(updateTours)
-  .delete(deleteTours);
-app.route("/api/v1/tours").get(getAllTours).post(createTour);
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'hello from apps' });
+});
+app.post('/', (req, res) => {
+  res.status(200).send('hi');
+});
 
+//3)Routes
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', usersRoute);
 //201 means created
 //204 means no data response
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "hello from apps" });
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'hello from apps' });
 });
-app.post("/", (req, res) => {
-  res.status(200).send("hi");
+app.post('/', (req, res) => {
+  res.status(200).send('hi');
 });
-app.listen(3000, () => {
-  console.log("app is running on port 3000");
-});
+
+//4)Start the server
+
 //rest representation state
 //seperate API into logical resoursces,
 // expose structural resource based URL
@@ -73,3 +43,4 @@ app.listen(3000, () => {
 //patch send only part of the object that is updated, put sends back complete object
 // send data as json
 //stateless rest Apis
+module.exports = app;

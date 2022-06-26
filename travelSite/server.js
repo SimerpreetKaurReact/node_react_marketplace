@@ -18,14 +18,26 @@ mongoose
     //}
   )
   .then((con) => {
-    console.log('error', con.connection);
+    console.log(con.connection);
     console.log('db connection succesful');
   });
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log('app is running on port 3000');
 });
-
+//unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.log('unhandledRejection', err.naem, err.message);
+  // server.close(() => {
+  //   process.exit(1);
+  // });
+});
+process.on('uncaughtException', (err) => {
+  console.log('uncaughtException', err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
+});
 //npm i eslint prettier eslint-config-prettier eslint-plugin-prettier
 //mongooe is a obhect data modelling library for mongo and node ie a higher level of abstraction
 //gives additional mongo db interaction

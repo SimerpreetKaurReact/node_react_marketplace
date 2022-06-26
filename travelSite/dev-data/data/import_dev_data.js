@@ -9,22 +9,33 @@ dotenv.config({ path: './config.env' });
 //   'PASSWORD',
 //   process.env.DATABASE_PASSWORD
 // );
+console.log(process.env.DATABASE_LOCAL);
 mongoose
-  .connect(process.env.DATABASE_LOCAL, {
-    //.connect(db, {
-    useNewUrlParse: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-  })
+  .connect(
+    process.env.DATABASE_LOCAL
+    // {
+    // //.connect(db, {
+    // useNewUrlParse: true,
+    // useCreateIndex: true,
+    // useFindAndModify: false,
+    //}
+  )
   .then((con) => {
-    console.log(con.connection);
+    console.log('error', con.connection);
     console.log('db connection succesful');
-  });
-
-//Read json file
+  })
+  .catch((err) => console.log(err));
+// mongoose
+//   .connect(process.env.DATABASE_LOCAL)
+//   .then((con) => {
+//     console.log(con.connection);
+//     console.log('db connection succesful');
+//   })
+//   .catch((err) => console.log(err));
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8')
 );
+//Read json file
 
 const importData = async () => {
   try {
@@ -34,12 +45,12 @@ const importData = async () => {
     console.log(err);
   }
 };
+importData();
 //Delete data from db
 const deleteData = async () => {
   try {
     await Tour.deleteMany(tours);
     console.log('Data successfully deleted');
-    process.exit();
   } catch (err) {
     console.log(err);
   }

@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node":">=10.0.0"
+  },
   "scripts": {
-    "start:dev": "nodemon server.js",
+    "start:dev": "nodemon server.js --import",
     "start:prod": "NODE_ENV= production nodemon server.js",
+    "debug": "ndb dev-data/data/import_dev_data.js --import",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,7 +18,10 @@
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "mongoose": "^6.4.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "ndb": "^1.1.5",
+    "slugify": "^1.6.5",
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "eslint": "^8.18.0",
@@ -25,7 +32,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.30.0",
-    "prettier": "^2.7.1",
-    "node":">10.0.0"
+    
+    "prettier": "^2.7.1"
   }
 }

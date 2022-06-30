@@ -11,10 +11,14 @@ const handleDuplicateFieldsDB = (err) => {
   return new AppError(message, 400);
 };
 const handleValidationErrorDB = (err) => {
-  const error = Object.values(err.err).map((el) => el.message);
+  const error = Object.values(err.errors).map((el) => el.message);
   const message = `invalid input data ${error.join('. ')}`;
   return new AppError(message, 400);
 };
+const handleJWTError = (err) =>
+  new AppError('invalid token, please login again', 401);
+const hahandleJWTExpiredError = (err) =>
+  new AppError('your token expired, login again');
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -34,13 +38,14 @@ const sendErrorProd = (err, res) => {
     });
     //programming or other unknown error
   } else {
-    //1.log error
+    //1.log error: use some logging library or store in db
     console.log('ERROR', err);
 
     res.status(500).json({ status: 'error', message: 'Something went wrong' });
   }
 };
 module.exports = (err, req, res, next) => {
+  //error handling middleware
   console.log(err.stack);
   err.statusCode = err.statusCode || 500; //for un predicted operational error we will need default status code and status
   err.status = err.status || 'error';
@@ -53,6 +58,9 @@ module.exports = (err, req, res, next) => {
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     if (error.name === 'ValidationError')
       error = handleValidationErrorDB(error);
+    if (error.name === 'JsonWebTokenError') error = handleJWTError(error);
+    if (error.name === 'TokenExpiredError')
+      error = hahandleJWTExpiredError(error);
     sendErrorProd(error, res);
   }
 };

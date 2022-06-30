@@ -1,6 +1,6 @@
 const Tour = require('../model/tour');
 const APIFeatures = require('../utils/apifeatures');
-const { default: AppError } = require('../utils/appError');
+const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 
 //const tours = fs.readFileSync('./../dev-data/data/tours-simple.json');
@@ -156,7 +156,7 @@ exports.createTour = catchAsync(async (req, res, next) => {
   // );
 });
 exports.updateTours = catchAsync(async (req, res, next) => {
-  const tour = Tour.findByIdAndUpdate(req.params.id, req.body, {
+  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
   });

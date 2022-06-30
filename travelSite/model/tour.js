@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 //use validator library for vlaidation
 // const validator = require('validator');
-
+//model is a blueprint to create doocuments
+//models are created out of schema
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -44,13 +45,13 @@ const tourSchema = new mongoose.Schema(
 
     price: {
       type: Number,
-      require: [true, 'A tour must have a price'],
+      required: [true, 'A tour must have a price'],
     },
     priceDiscout: {
       type: Number,
       validate: {
         validator: function (val) {
-          //THIS ONLY POINTS TO CURRENT DOC ON NEW DOC CREATION WONT WORK FOR UPDATE
+          //THIS ONLY POINTS TO CURRENT DOC ON NEW DOC CREATION, it  WONT WORK FOR UPDATE
           return val < this.price;
         },
         message: `Dicounted proce ({VALUE}) should be below regular price`,
@@ -76,11 +77,41 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      //geo json
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+      locations: [
+        {
+          type: {
+            type: String,
+            default: 'Point',
+            enum: ['Point'],
+          },
+          coordinates: [Number],
+          address: String,
+          description: String,
+          day: Number,
+        },
+      ],
+    },
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
-    toJSON: { virutals: true },
-    toObject: { virutals: true },
-  }
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  } //to get virtual property in our output
 );
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
@@ -93,6 +124,11 @@ tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromise = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromise);
+//   next();
+// });
 
 // eslint-disable-next-line prefer-arrow-callback
 tourSchema.pre('save', function (next) {
@@ -116,16 +152,25 @@ tourSchema.pre(/^find/, function (next) {
   this.start = Date.now();
   next();
 });
-tourSchema.post(/^find/, function (docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds`);
-  next();
-});
+
+//works for every thing that starts with find
+// tourSchema.pre(/^find/, function (next) {
+//   this.populate({ path: 'guides', select: '-__v -passwordChangedAt' });
+
+//   next();
+// });
+
 //aggregation middleware
-tourSchema.pre('aggregate', function (docs, next) {
-  ///this here will now poitn to current aggregation
+tourSchema.pre('aggregate', function (next) {
+  ///this here will now poitn to current aggregation object
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   console.log(this.pipeline());
 
+  next();
+});
+//weill run only post find  has already completed
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds`);
   next();
 });
 const Tour = mongoose.model('Tour', tourSchema);

@@ -27,7 +27,7 @@ const server = app.listen(port, () => {
 });
 //unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.log('unhandledRejection', err.naem, err.message);
+  console.log('unhandledRejection', err.name, err.message);
   // server.close(() => {
   //   process.exit(1);
   // });
@@ -38,8 +38,10 @@ process.on('uncaughtException', (err) => {
     process.exit(1);
   });
 });
+//syncronous code with errors/bugs which are not handled anywhere are called uncaught exception
+//express is a higher level of abstraction over node
 //npm i eslint prettier eslint-config-prettier eslint-plugin-prettier
-//mongooe is a obhect data modelling library for mongo and node ie a higher level of abstraction
+//mongooe is a object data modelling library for mongo and node ie a higher level of abstraction
 //gives additional mongo db interaction
 //schemas, easy data validations, simple query api, middleware
 //sxhema is where we model our data by describing the structure of the data, defallt values and validations

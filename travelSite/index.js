@@ -1,17 +1,53 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controlllers/errorController');
-const tourRouter = require('./routes/tourRoutes');
-const usersRoute = require('./routes/userRoutes');
+const routes = require('./routes');
 
 const app = express();
+
+//Global middleware
+//SEt security http headers
+app.use(helmet());
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+//limit request from same api
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'too many request from this ip, please try again',
+});
+
+//body parser reading data from body into req.body
+app.use(express.json({ limit: '10kb' }));
+
+//data sanitization against xss:no sql query injection
+app.use(mongoSanitize());
+//removes $ signs in body s this wont work
+//removes html code from body
+app.use(xss());
+//remove parameter pollution
+app.use(
+  hpp({ whitelist: ['duration', 'ratingsQuantity', 'difficulty', 'price'] })
+);
 //middleware
 app.use(express.json());
+//Serving static files
 app.use(express.static(`${__dirname}/public`));
+
+app.use(cors());
+// Body parser
+app.use(express.urlencoded({ extended: false }));
+
 //to open elements in public folder
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -26,9 +62,8 @@ app.post('/', (req, res) => {
 });
 
 //3)Routes
-app.use('/api/v1/tours', tourRouter);
-app.use('/api/v1/users', usersRoute);
-app.all('', usersRoute);
+app.use('/api/v1', limiter, routes);
+// app.all('', usersRoute);
 
 //201 means created
 //204 means no data response

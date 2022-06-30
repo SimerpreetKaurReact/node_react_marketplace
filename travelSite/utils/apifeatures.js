@@ -39,7 +39,7 @@ class APIFeatures {
     //for multiple sorting
 
     if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(',').join('');
+      const sortBy = this.queryString.sort.split(',').join(' ');
       this.query = this.query.sort(sortBy);
     } else {
       this.query = this.query.sort('-createdAt');
@@ -53,7 +53,7 @@ class APIFeatures {
     // route example {ip}/api/tours?fields=name,duration,difficulty,price
 
     if (this.queryString.field) {
-      const fields = this.queryString.field.split(',').join('');
+      const fields = this.queryString.field.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {
       this.query = this.query.select('-__v'); //excluding the v filed

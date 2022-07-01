@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./user');
 //use validator library for vlaidation
 // const validator = require('validator');
 //model is a blueprint to create doocuments
@@ -39,6 +40,8 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'rating must be minimum 1'],
       max: [5, 'rating must be max 5'],
+      set: (val) => Math.round(val * 10) / 10, //round will round 4.6666 to 5 but we want 4.5
+      //so multiply the value 10 and get 46.66 then when it rounds it to 47 then divide by 10
     },
 
     ratingsQuantity: { type: Number, default: 0 },
@@ -87,20 +90,20 @@ const tourSchema = new mongoose.Schema(
       coordinates: [Number],
       address: String,
       description: String,
-      locations: [
-        {
-          type: {
-            type: String,
-            default: 'Point',
-            enum: ['Point'],
-          },
-          coordinates: [Number],
-          address: String,
-          description: String,
-          day: Number,
-        },
-      ],
     },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
     guides: [
       {
         type: mongoose.Schema.ObjectId,
@@ -113,10 +116,21 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   } //to get virtual property in our output
 );
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
+//access patterns help in setting indexes, since each index takes space
+//read write pattern of documents
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
-
+//virtual field is above duration week where a field is virtually populated
+//virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
+});
 //1)document middleware: runs befor .save() .create /// WONT WORK FOR UPDATE
 //it will not run before insertMany()
 tourSchema.pre('save', function (next) {
@@ -124,6 +138,7 @@ tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
+//embedding guide route
 // tourSchema.pre('save', async function (next) {
 //   const guidesPromise = this.guides.map(async (id) => await User.findById(id));
 //   this.guides = await Promise.all(guidesPromise);
@@ -154,20 +169,20 @@ tourSchema.pre(/^find/, function (next) {
 });
 
 //works for every thing that starts with find
-// tourSchema.pre(/^find/, function (next) {
-//   this.populate({ path: 'guides', select: '-__v -passwordChangedAt' });
-
-//   next();
-// });
-
-//aggregation middleware
-tourSchema.pre('aggregate', function (next) {
-  ///this here will now poitn to current aggregation object
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
+tourSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'guides', select: '-__v -passwordChangedAt' });
 
   next();
 });
+
+//aggregation middleware
+// tourSchema.pre('aggregate', function (next) {
+//   ///this here will now poitn to current aggregation object
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+
+//   next();
+// });
 //weill run only post find  has already completed
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds`);

@@ -80,7 +80,7 @@ app.all('*', (req, res, next) => {
   // err.status = 'fail';
   // err.statusCode = 404;
   // next(err);
-  next(AppError(`cant find ${req.originalUrl} on this server`, 404));
+  next(new AppError(`cant find ${req.originalUrl} on this server`, 404));
   //if something is passesd to next it is assumed to be error which is sent to error handler middleware
   // res.status(404).json({
   //   status: 'fail',

@@ -101,6 +101,7 @@ exports.restrictTo =
       );
       //403 is forbidden
     }
+    next();
   };
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   //get user with email, if user not found send error

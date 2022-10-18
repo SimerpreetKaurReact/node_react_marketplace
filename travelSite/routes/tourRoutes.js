@@ -13,6 +13,8 @@ const {
   getMonthlyPlan,
   getToursWithin,
   getDistances,
+  uploadTourImages,
+  resizeTourImages,
 } = require('../controlllers/tourController');
 const reviewRouter = require('./reviewRoutes');
 //nested routes handling
@@ -45,11 +47,17 @@ router.route('/distances/:latlng/unit/:unit').get(getDistances);
 router
   .route('/:id')
   .get(getTour)
-  .patch(protect, restrictTo('admin', 'lead-guide'), updateTours)
+  .patch(
+    protect,
+    restrictTo('admin', 'lead-guide'),
+    uploadTourImages,
+    resizeTourImages,
+    updateTours
+  )
   .delete(protect, restrictTo('admin', 'lead-guide'), deleteTours);
 router
   .route('/')
   .get(getAllTours)
-  .post(protect, restrictTo('admin', 'lead-guide'), createTour);
+  .post(protect, restrictTo('admin', 'l ead-guide'), createTour);
 
 module.exports = router;

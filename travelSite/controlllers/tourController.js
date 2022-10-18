@@ -1,7 +1,9 @@
+const multer = require('multer');
 const Tour = require('../model/tour');
-const APIFeatures = require('../utils/apifeatures');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+const sharp = require('sharp');
+
 const {
   deleteOne,
   updateOne,
@@ -10,6 +12,58 @@ const {
   getAll,
 } = require('./handleFactory');
 
+const multerStorage = multer.memoryStorage();
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('file type should be image', 404), false);
+  }
+};
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 5 },
+]);
+//upload.single('image');
+//upload.array('images', 5);
+//req.file, for single
+// req.files for fields, array
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  console.log(req.files);
+  if (!req.files.imageCover || !req.files.images) return next();
+  //1)proccessing the coverimages
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover.buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`);
+  //2images
+  req.body.images = [];
+  await Promise.all(
+    //since below is an async function it will return a promise,
+    // here without promise all we are not waiting for req.files to complete
+    //since we are not awaiting that
+    req.files.images.map(async (file, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+      req.body.images.push(filename);
+    })
+  );
+
+  //by await this promise, since our async is on Foreach,so after foreach iteration it will go to next
+  //by using promise all, we make sure all promises stored after.map are completed before moving on
+
+  next();
+});
 //const tours = fs.readFileSync('./../dev-data/data/tours-simple.json');
 // export const checkID = (req, res, next, val) => {
 //   console.log(`Tour id is ${val}`);

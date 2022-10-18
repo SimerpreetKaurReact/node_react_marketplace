@@ -22,7 +22,6 @@ class APIFeatures {
     );
     //here since gte/lte and other we are sending from UI, so our requets params will have [gte],[lte]
     //eg {ip}/api/v1/tours?duration[gte]=5&difficulty=easy&price[lt]=1500
-    console.log(JSON.parse(queryStrr));
     // const tours = await Tour.find()
     //   .where('duration')
     //   .equals('5')

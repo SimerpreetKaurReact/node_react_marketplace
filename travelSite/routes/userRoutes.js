@@ -10,6 +10,7 @@ const {
   updatePassword,
   restrictTo,
 } = require('../controlllers/authController');
+
 const {
   getAllUsers,
   getUser,
@@ -19,6 +20,8 @@ const {
   updateMe,
   deleteMe,
   getMe,
+  userUpload,
+  resizeUserPhoto,
 } = require('../controlllers/userController');
 
 router.post('/signup', signup);
@@ -30,7 +33,7 @@ router.use(protect);
 router.patch('/updateMyPassword', updatePassword);
 router.get('/me', getMe, getUser);
 
-router.patch('/updateMe', updateMe);
+router.patch('/updateMe', userUpload, resizeUserPhoto, updateMe);
 router.delete('/deleteMe', deleteMe);
 
 router.use(restrictTo('admin'));

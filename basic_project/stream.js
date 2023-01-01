@@ -39,3 +39,15 @@ server.listen(8001, "127.0.0.1", () => {
 //use exports to export multiple  named variables (exports,add=(a,b)=>a+b)
 
 //caching: if we require same module multiple times in same module
+// instead of waiting until the entire video file loads,
+// the processing is done piece by piece or in chunks
+// so that you can start watching even before the entire file
+// has been downloaded.
+// Also, streaming make the data processing more efficient
+// in terms of memory because there is no need
+// to keep all the data in memory and also in terms of time
+// In Node, there are four fundamental types of streams:
+// readable streams, writable streams, duplex streams,
+// and transform streams.
+// But the readable and writeable ones
+// are the most important ones.
